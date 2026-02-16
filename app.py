@@ -6,77 +6,90 @@ import os
 # --- KONFIGURACJA STRONY ---
 st.set_page_config(page_title="Wybór Imienia", layout="centered")
 
-# --- CSS: KOLORYSTYKA KREMOWA I WYGLĄD KART (ZAKTUALIZOWANE) ---
+# --- CSS: ULEPSZONY STYL DLA MOBILE ---
 st.markdown("""
     <style>
-    /* Wymuszenie kolorów tła na wypadek, gdyby config nie zadziałał */
+    /* Globalne ustawienia czcionki i tła (zabezpieczenie) */
     .stApp {
         background-color: #FDFBF7;
-        color: #31333F;
+        color: #333333;
     }
     
-    /* Karta imienia - zwiększony kontrast i cień */
+    /* Karta imienia - Czysta biel, cień */
     .name-card {
-        padding: 20px;
-        background-color: #FFFFFF; /* Czysta biel dla kontrastu z kremowym tłem */
-        border: 1px solid #D4C5A5; /* Delikatna ramka */
+        background-color: #FFFFFF;
+        border: 1px solid #E0E0E0;
         border-radius: 15px;
-        box-shadow: 0px 4px 12px rgba(0,0,0,0.08); /* Wyraźniejszy cień */
+        padding: 20px 10px;
         text-align: center;
-        margin-bottom: 15px;
+        margin-bottom: 8px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 80px;
+    }
+    
+    .name-text {
         font-size: 24px;
         font-weight: 700;
         color: #2c3e50;
+        margin-bottom: 5px;
     }
 
-    /* Przyciski standardowe (np. Zatwierdź) */
-    .stButton>button {
-        width: 100%;
-        border-radius: 12px;
-        height: 3.5em; /* Wyższe przyciski łatwiej kliknąć na telefonie */
-        background-color: #FFFFFF;
-        color: #333333;
-        border: 2px solid #E0E0E0;
-        font-weight: 600;
-        transition: all 0.3s ease;
+    /* HACK CSS: Powiększenie checkboxa */
+    div[data-baseweb="checkbox"] {
+        margin-top: 5px;
+        justify-content: center;
+    }
+    div[data-baseweb="checkbox"] label {
+        font-size: 16px !important;
+        font-weight: 600 !important;
+        color: #4A4A4A !important;
+    }
+    div[data-baseweb="checkbox"] div {
+        transform: scale(1.3); /* Powiększenie kwadracika */
+        margin-right: 10px;
+        border-color: #A69065 !important;
     }
     
-    /* Efekt najechania/wciśnięcia dla standardowych */
-    .stButton>button:hover, .stButton>button:active {
-        background-color: #F0EBE0;
-        border-color: #A69065;
-        color: #000;
-    }
-
-    /* Przyciski GŁÓWNE (Start, Wybór w turnieju) */
+    /* Przycisk główny (Zatwierdź/Dalej) */
     .stButton>button[kind="primary"] {
-        background-color: #A69065; /* Złoty beż */
+        width: 100%;
+        height: 3.5em;
+        background-color: #A69065;
         color: white;
         border: none;
-        box-shadow: 0 4px 6px rgba(166, 144, 101, 0.3);
+        border-radius: 12px;
+        font-size: 18px;
+        font-weight: bold;
+        box-shadow: 0 4px 10px rgba(166, 144, 101, 0.4);
     }
     .stButton>button[kind="primary"]:hover {
         background-color: #8C7853;
-        color: white;
-    }
-
-    /* Checkboxy i Inputy - poprawa widoczności na Androidzie */
-    div[data-baseweb="checkbox"] div {
-        background-color: white;
-        border-color: #A69065;
     }
     
-    /* Link do Wikipedii */
+    /* Zwykłe przyciski */
+    .stButton>button {
+        width: 100%;
+        height: 3.5em;
+        border-radius: 12px;
+        border: 2px solid #E0E0E0;
+        background-color: white;
+        color: #333;
+    }
+
+    /* Link w wynikach */
     .wiki-link {
-        display: inline-block;
-        margin-top: 10px;
-        padding: 8px 16px;
-        background-color: #F0F4F8;
-        border-radius: 20px;
         text-decoration: none;
         color: #0068C9;
+        font-weight: bold;
+        padding: 5px 10px;
+        border: 1px solid #dbeefc;
+        border-radius: 15px;
+        background-color: #f0f7ff;
         font-size: 0.9em;
-        font-weight: 600;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -93,20 +106,13 @@ def load_data():
         st.error(f"Błąd pliku CSV: {e}")
         return None
 
-# --- ZARZĄDZANIE STANEM (SESSION STATE) ---
-if 'step' not in st.session_state:
-    st.session_state.step = 1
-if 'selected_gender' not in st.session_state:
-    st.session_state.selected_gender = None
-if 'candidate_list' not in st.session_state:
-    # Lista słowników: [{'Imie': 'Jan', 'Wikipedia_Url': '...'}]
-    st.session_state.candidate_list = []
-if 'kept_names' not in st.session_state:
-    st.session_state.kept_names = []
-if 'current_index' not in st.session_state:
-    st.session_state.current_index = 0
-if 'round_winners' not in st.session_state:
-    st.session_state.round_winners = []
+# --- STAN APLIKACJI ---
+if 'step' not in st.session_state: st.session_state.step = 1
+if 'selected_gender' not in st.session_state: st.session_state.selected_gender = None
+if 'candidate_list' not in st.session_state: st.session_state.candidate_list = []
+if 'kept_names' not in st.session_state: st.session_state.kept_names = []
+if 'current_index' not in st.session_state: st.session_state.current_index = 0
+if 'round_winners' not in st.session_state: st.session_state.round_winners = []
 
 def reset_app():
     for key in list(st.session_state.keys()):
@@ -114,13 +120,12 @@ def reset_app():
     st.rerun()
 
 # =========================================================
-# EKRAN 1: WYBÓR PŁCI
+# EKRAN 1: PŁEĆ
 # =========================================================
 if st.session_state.step == 1:
-    st.title("Wybór Imienia dla Dziecka 👶")
-    st.markdown("Witaj! Przejdziemy przez kilka etapów selekcji, aby znaleźć idealne imię.")
+    st.title("Wybór Imienia 👶")
+    st.markdown("Wybierz płeć dziecka, aby rozpocząć poszukiwania.")
     st.write("---")
-    st.subheader("Kogo się spodziewacie?")
     
     col1, col2 = st.columns(2)
     with col1:
@@ -135,73 +140,67 @@ if st.session_state.step == 1:
             st.rerun()
 
 # =========================================================
-# EKRAN 2: WYBÓR LICZBY IMION (TOP LISTA)
+# EKRAN 2: ZAKRES
 # =========================================================
 elif st.session_state.step == 2:
-    st.title("Baza Imion")
-    st.write("Wybierz, jak szeroko chcesz szukać. Imiona pochodzą ze statystyk GUS (ostatnie 5 lat).")
+    st.title("Wybierz zakres")
+    st.write("Ile najpopularniejszych imion z Polski (2023/24) chcesz przejrzeć?")
     
     mapping = {"Top 30": 30, "Top 50": 50, "Top 100": 100, "Top 200": 200}
-    choice = st.selectbox("Zakres poszukiwań:", list(mapping.keys()), index=1)
+    choice = st.selectbox("Liczba imion:", list(mapping.keys()), index=1)
     limit = mapping[choice]
     
-    if st.button("Rozpocznij selekcję"):
+    if st.button("Rozpocznij selekcję", type="primary"):
         df = load_data()
         if df is None:
-            st.error("Nie znaleziono pliku imiona.csv! Upewnij się, że jest w repozytorium.")
+            st.error("Brak pliku imiona.csv!")
         else:
-            # Filtrowanie i sortowanie
             filtered = df[df['Plec'] == st.session_state.selected_gender].copy()
+            # Sortowanie po popularności
             filtered = filtered.sort_values(by='Liczba', ascending=False)
-            
-            # Pobranie top N i konwersja do listy słowników
             top_selection = filtered.head(limit)
             
-            if top_selection.empty:
-                st.warning("Brak danych dla wybranych kryteriów.")
-            else:
-                data_list = top_selection[['Imie', 'Wikipedia_Url']].to_dict('records')
-                random.shuffle(data_list) # Mieszamy, żeby nie sugerować się rankingiem
-                
-                st.session_state.candidate_list = data_list
-                st.session_state.step = 3
-                st.session_state.current_index = 0
-                st.session_state.kept_names = []
-                st.rerun()
+            data_list = top_selection[['Imie', 'Wikipedia_Url']].to_dict('records')
+            random.shuffle(data_list)
+            
+            st.session_state.candidate_list = data_list
+            st.session_state.step = 3
+            st.session_state.current_index = 0
+            st.session_state.kept_names = []
+            st.rerun()
 
 # =========================================================
-# EKRAN 3 i 4: SELEKCJA (KCIUK W GÓRĘ / DÓŁ)
+# EKRAN 3 i 4: SELEKCJA (PACZKI PO 10)
 # =========================================================
 elif st.session_state.step in [3, 4]:
-    # Konfiguracja nagłówków zależnie od etapu
     if st.session_state.step == 3:
-        header = "Runda 1: Wstępna Selekcja"
-        desc = "Zaznacz 'Tak' (👍) przy imionach, które Ci się podobają. Reszta zostanie odrzucona."
+        header = "Runda 1: Szybki wybór"
+        desc = "Zaznacz imiona, które Ci się podobają. Te niezaznaczone odpadną."
     else:
-        header = "Runda 2: Zawężanie Listy"
-        desc = "Spośród wybranych imion, odrzuć te, do których masz wątpliwości."
+        header = "Runda 2: Weryfikacja"
+        desc = "Zostaw tylko te, które bierzesz pod uwagę na 100%."
 
     st.title(header)
     st.info(desc)
     
-    # Pasek postępu
-    total = len(st.session_state.candidate_list)
-    current = st.session_state.current_index
-    progress = min(current / total, 1.0) if total > 0 else 1.0
-    st.progress(progress)
-    
-    # Pobieranie paczki 10 imion
+    # Dane
     BATCH_SIZE = 10
-    end_index = min(current + BATCH_SIZE, total)
-    batch = st.session_state.candidate_list[current:end_index]
+    total = len(st.session_state.candidate_list)
+    idx = st.session_state.current_index
     
-    # --- Logika przejścia dalej, gdy lista się skończy ---
+    # Progress
+    prog = min(idx / total, 1.0) if total > 0 else 1.0
+    st.progress(prog)
+    st.caption(f"Wyświetlono {min(idx + BATCH_SIZE, total)} z {total}")
+
+    batch = st.session_state.candidate_list[idx : idx + BATCH_SIZE]
+    
+    # Logika końca listy
     if not batch:
         if st.session_state.step == 3:
-            # Koniec 1. rundy -> idź do 2. rundy
             if not st.session_state.kept_names:
-                st.warning("Nie wybrałeś żadnego imienia! Spróbuj ponownie.")
-                if st.button("Zrestartuj"): reset_app()
+                st.warning("Nic nie wybrałeś! Spróbuj ponownie.")
+                if st.button("Restart"): reset_app()
             else:
                 st.session_state.candidate_list = st.session_state.kept_names
                 st.session_state.kept_names = []
@@ -209,139 +208,108 @@ elif st.session_state.step in [3, 4]:
                 st.session_state.step = 4
                 st.rerun()
         else:
-            # Koniec 2. rundy -> idź do turnieju
-            final_pool = st.session_state.kept_names
-            if len(final_pool) < 2:
-                # Jeśli zostało za mało imion na turniej, idź od razu do wyników
-                st.session_state.candidate_list = final_pool
+            final = st.session_state.kept_names
+            if len(final) < 2:
+                st.session_state.candidate_list = final
                 st.session_state.step = 6
                 st.rerun()
             else:
-                # Przygotowanie do turnieju
-                random.shuffle(final_pool)
-                st.session_state.candidate_list = final_pool
+                random.shuffle(final)
+                st.session_state.candidate_list = final
                 st.session_state.round_winners = []
                 st.session_state.step = 5
                 st.rerun()
-        st.stop() # Zatrzymujemy wykonanie reszty kodu w tym przebiegu
+        st.stop()
 
-    # Formularz oceny
-    with st.form(key=f"selection_form_{st.session_state.step}_{current}"):
-        st.write(f"Imiona {current + 1} - {end_index} z {total}")
+    # Formularz selekcji
+    with st.form(key=f"batch_{st.session_state.step}_{idx}"):
+        cols = st.columns(2)
         
-        # Słownik na decyzje użytkownika
-        selections = {}
+        for i, item in enumerate(batch):
+            col = cols[i % 2]
+            with col:
+                st.markdown(f"""
+                <div class='name-card'>
+                    <div class='name-text'>{item['Imie']}</div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Checkbox - czysty, z opisem "Podoba mi się"
+                st.checkbox(f"💚 Podoba mi się!", key=f"chk_{item['Imie']}")
+                st.write("") # Odstęp
         
-        for item in batch:
-            name = item['Imie']
-            c1, c2, c3 = st.columns([0.2, 0.6, 0.2])
-            
-            # Lewa kolumna: Czerwony kciuk (wizualny)
-            with c1:
-                st.markdown("<div style='text-align: right; font-size: 20px; padding-top: 15px;'>🟥</div>", unsafe_allow_html=True)
-            
-            # Środek: Karta imienia
-            with c2:
-                st.markdown(f"<div class='name-card'>{name}</div>", unsafe_allow_html=True)
-            
-            # Prawa kolumna: Checkbox (Kciuk w górę - Zielony)
-            with c3:
-                # Checkbox działa jako "Zatwierdź" / "Tak"
-                is_selected = st.checkbox("👍", key=f"sel_{name}")
-                selections[name] = is_selected
-
         st.write("---")
-        submit = st.form_submit_button("Zatwierdź wybory")
-        
-        if submit:
+        if st.form_submit_button("Zatwierdź i pokaż kolejne ➡", type="primary"):
+            # Zbieranie wyników
             for item in batch:
-                if selections[item['Imie']]:
+                if st.session_state.get(f"chk_{item['Imie']}", False):
                     st.session_state.kept_names.append(item)
-            
             st.session_state.current_index += BATCH_SIZE
             st.rerun()
 
 # =========================================================
-# EKRAN 5: TURNIEJ (WALKI IMION)
+# EKRAN 5: TURNIEJ
 # =========================================================
 elif st.session_state.step == 5:
-    st.title("⚔️ Turniej Imion")
-    st.markdown("Wybierz lepsze imię z pary. Walczymy, aż zostaną 3-4 najlepsze.")
+    st.title("⚔️ Finałowy Turniej")
+    st.markdown("Wybierz lepsze imię z pary.")
     
     candidates = st.session_state.candidate_list
     winners = st.session_state.round_winners
     
-    # Sprawdzenie warunku końca całej gry (zostało <= 4 imion łącznie)
-    total_remaining = len(candidates) + len(winners)
-    
+    # Warunki końca
     if len(candidates) == 0:
-        # Koniec rundy
-        if total_remaining <= 4:
-            # Mamy finalistów
+        if len(winners) + len(candidates) <= 4:
             st.session_state.candidate_list = winners
             st.session_state.step = 6
             st.rerun()
         else:
-            # Przejście do kolejnej rundy turnieju
             random.shuffle(winners)
             st.session_state.candidate_list = winners
             st.session_state.round_winners = []
             st.rerun()
             
-    # Obsługa "wolnego losu" (jeśli została nieparzysta liczba)
     if len(candidates) == 1:
-        # Ostatnie imię przechodzi automatycznie do zwycięzców rundy
-        lucky_one = candidates[0]
-        st.session_state.round_winners.append(lucky_one)
-        st.session_state.candidate_list = [] # Pusta lista wymusi logikę końca rundy w następnym odświeżeniu
+        st.session_state.round_winners.append(candidates[0])
+        st.session_state.candidate_list = []
         st.rerun()
 
-    # Walka: Wybierz dwa pierwsze imiona
-    fighter_1 = candidates[0]
-    fighter_2 = candidates[1]
+    # Walka
+    f1 = candidates[0]
+    f2 = candidates[1]
     
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown(f"<div class='name-card' style='height: 100px; display: flex; align-items: center; justify-content: center;'>{fighter_1['Imie']}</div>", unsafe_allow_html=True)
-        if st.button("Wybieram to 👈", key="btn1", type="primary"):
-            st.session_state.round_winners.append(fighter_1)
+    c1, c2 = st.columns(2)
+    with c1:
+        st.markdown(f"<div class='name-card'><div class='name-text'>{f1['Imie']}</div></div>", unsafe_allow_html=True)
+        if st.button("👈 Wybieram to", key="btn1", type="primary"):
+            st.session_state.round_winners.append(f1)
             st.session_state.candidate_list = candidates[2:]
             st.rerun()
-            
-    with col2:
-        st.markdown(f"<div class='name-card' style='height: 100px; display: flex; align-items: center; justify-content: center;'>{fighter_2['Imie']}</div>", unsafe_allow_html=True)
+    with c2:
+        st.markdown(f"<div class='name-card'><div class='name-text'>{f2['Imie']}</div></div>", unsafe_allow_html=True)
         if st.button("Wybieram to 👉", key="btn2", type="primary"):
-            st.session_state.round_winners.append(fighter_2)
+            st.session_state.round_winners.append(f2)
             st.session_state.candidate_list = candidates[2:]
             st.rerun()
-
-    st.write(f"Pozostało par w tej rundzie: {len(candidates)//2}")
+    
+    st.caption(f"Pozostało par w tej rundzie: {len(candidates)//2}")
 
 # =========================================================
-# EKRAN 6: RAPORT KOŃCOWY
+# EKRAN 6: WYNIKI
 # =========================================================
 elif st.session_state.step == 6:
     st.balloons()
-    st.title("🎉 Twoja Lista Top Imion")
-    st.markdown("Oto imiona, które przetrwały wszystkie etapy selekcji:")
+    st.title("🎉 Wybrane Imiona")
     
     finalists = st.session_state.candidate_list
     
     for item in finalists:
-        name = item['Imie']
-        url = item['Wikipedia_Url']
-        
         st.markdown(f"""
-        <div class="name-card" style="text-align: left; display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-size: 24px;">{name}</span>
-            <a href="{url}" target="_blank" class="wiki-link">
-                📖 Zobacz opis
-            </a>
+        <div class="name-card" style="flex-direction: row; justify-content: space-between; padding: 20px;">
+            <div class="name-text" style="margin:0;">{item['Imie']}</div>
+            <a href="{item['Wikipedia_Url']}" target="_blank" class="wiki-link">Wikipedia 📖</a>
         </div>
         """, unsafe_allow_html=True)
         
-    st.write("---")
-    if st.button("Rozpocznij od nowa"):
-
+    if st.button("Zacznij od nowa"):
         reset_app()
