@@ -1,1 +1,7 @@
-
+[theme]
+base = "light"
+primaryColor = "#A69065"      # Złoto-beżowy (akcenty, aktywne elementy)
+backgroundColor = "#FDFBF7"   # Twój kremowy kolor tła
+secondaryBackgroundColor = "#F0EBE0" # Nieco ciemniejszy beż (dla sidebarów i kart input)
+textColor = "#31333F"         # Ciemny grafit (dla kontrastu tekstu)
+font = "sans serif"
