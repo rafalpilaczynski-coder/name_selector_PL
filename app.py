@@ -6,57 +6,77 @@ import os
 # --- KONFIGURACJA STRONY ---
 st.set_page_config(page_title="Wybór Imienia", layout="centered")
 
-# --- CSS: KOLORYSTYKA KREMOWA I WYGLĄD KART ---
+# --- CSS: KOLORYSTYKA KREMOWA I WYGLĄD KART (ZAKTUALIZOWANE) ---
 st.markdown("""
     <style>
-    /* Główne tło */
+    /* Wymuszenie kolorów tła na wypadek, gdyby config nie zadziałał */
     .stApp {
-        background-color: #FDFBF7; /* Ecru / Kremowy */
-        color: #4A4A4A;
+        background-color: #FDFBF7;
+        color: #31333F;
     }
-    /* Nagłówki */
-    h1, h2, h3 {
-        color: #5D5D5D;
-        font-family: 'Helvetica', sans-serif;
-    }
-    /* Karta imienia */
+    
+    /* Karta imienia - zwiększony kontrast i cień */
     .name-card {
-        padding: 15px;
-        background-color: #FFFFFF;
-        border: 1px solid #E0E0E0;
-        border-radius: 12px;
-        box-shadow: 0px 4px 6px rgba(0,0,0,0.05);
+        padding: 20px;
+        background-color: #FFFFFF; /* Czysta biel dla kontrastu z kremowym tłem */
+        border: 1px solid #D4C5A5; /* Delikatna ramka */
+        border-radius: 15px;
+        box-shadow: 0px 4px 12px rgba(0,0,0,0.08); /* Wyraźniejszy cień */
         text-align: center;
-        margin-bottom: 5px;
-        font-size: 22px;
-        font-weight: 600;
+        margin-bottom: 15px;
+        font-size: 24px;
+        font-weight: 700;
         color: #2c3e50;
     }
-    /* Stylizacja przycisków standardowych */
+
+    /* Przyciski standardowe (np. Zatwierdź) */
     .stButton>button {
         width: 100%;
-        border-radius: 8px;
-        height: 3em;
-        background-color: #F0EBE0;
-        color: #333;
-        border: none;
+        border-radius: 12px;
+        height: 3.5em; /* Wyższe przyciski łatwiej kliknąć na telefonie */
+        background-color: #FFFFFF;
+        color: #333333;
+        border: 2px solid #E0E0E0;
+        font-weight: 600;
+        transition: all 0.3s ease;
     }
-    .stButton>button:hover {
-        background-color: #E6DFD0;
+    
+    /* Efekt najechania/wciśnięcia dla standardowych */
+    .stButton>button:hover, .stButton>button:active {
+        background-color: #F0EBE0;
+        border-color: #A69065;
         color: #000;
     }
-    /* Przyciski turniejowe (primary) */
+
+    /* Przyciski GŁÓWNE (Start, Wybór w turnieju) */
     .stButton>button[kind="primary"] {
-        background-color: #D4C5A5;
+        background-color: #A69065; /* Złoty beż */
         color: white;
-        font-size: 1.2em;
+        border: none;
+        box-shadow: 0 4px 6px rgba(166, 144, 101, 0.3);
     }
-    /* Link do wikipedii w raporcie */
+    .stButton>button[kind="primary"]:hover {
+        background-color: #8C7853;
+        color: white;
+    }
+
+    /* Checkboxy i Inputy - poprawa widoczności na Androidzie */
+    div[data-baseweb="checkbox"] div {
+        background-color: white;
+        border-color: #A69065;
+    }
+    
+    /* Link do Wikipedii */
     .wiki-link {
+        display: inline-block;
+        margin-top: 10px;
+        padding: 8px 16px;
+        background-color: #F0F4F8;
+        border-radius: 20px;
         text-decoration: none;
-        color: #5C8D89; 
+        color: #0068C9;
         font-size: 0.9em;
-        font-weight: normal;
+        font-weight: 600;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -323,4 +343,5 @@ elif st.session_state.step == 6:
         
     st.write("---")
     if st.button("Rozpocznij od nowa"):
+
         reset_app()
