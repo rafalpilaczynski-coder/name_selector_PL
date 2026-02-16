@@ -6,55 +6,64 @@ import os
 # --- KONFIGURACJA STRONY ---
 st.set_page_config(page_title="Wybór Imienia", layout="centered")
 
-# --- CSS: ULEPSZONY STYL DLA MOBILE ---
+# --- CSS: STYLIZACJA (Poprawione centrowanie i wielkość) ---
 st.markdown("""
     <style>
-    /* Globalne ustawienia czcionki i tła (zabezpieczenie) */
+    /* 1. Globalne tło */
     .stApp {
         background-color: #FDFBF7;
         color: #333333;
     }
     
-    /* Karta imienia - Czysta biel, cień */
+    /* 2. Karta imienia */
     .name-card {
         background-color: #FFFFFF;
         border: 1px solid #E0E0E0;
         border-radius: 15px;
-        padding: 20px 10px;
+        padding: 15px 5px; /* Mniejszy padding góra/dół */
         text-align: center;
-        margin-bottom: 8px;
+        margin-bottom: 5px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        min-height: 70px;
         display: flex;
-        flex-direction: column;
-        justify-content: center;
         align-items: center;
-        min-height: 80px;
+        justify-content: center;
     }
     
     .name-text {
-        font-size: 24px;
-        font-weight: 700;
+        font-size: 26px; /* Jeszcze większe imię */
+        font-weight: 800;
         color: #2c3e50;
-        margin-bottom: 5px;
+        letter-spacing: 0.5px;
     }
 
-    /* HACK CSS: Powiększenie checkboxa */
-    div[data-baseweb="checkbox"] {
+    /* 3. CHECKBOX - CENTROWANIE I POWIĘKSZANIE (KLUCZOWA ZMIANA) */
+    
+    /* Wyśrodkowanie całego widgetu checkboxa w kolumnie */
+    div[data-testid="stColumn"] div[data-testid="stCheckbox"] {
+        display: flex;
+        justify-content: center; /* Centruje w poziomie */
+        align-items: center;     /* Centruje w pionie */
+        width: 100%;
         margin-top: 5px;
-        justify-content: center;
+        margin-bottom: 20px;     /* Odstęp od kolejnego wiersza */
     }
-    div[data-baseweb="checkbox"] label {
-        font-size: 16px !important;
-        font-weight: 600 !important;
-        color: #4A4A4A !important;
-    }
+
+    /* Powiększenie samego kwadracika */
     div[data-baseweb="checkbox"] div {
-        transform: scale(1.3); /* Powiększenie kwadracika */
-        margin-right: 10px;
+        transform: scale(1.5);   /* Duży kwadrat */
+        margin-right: 15px;      /* Odstęp od tekstu */
         border-color: #A69065 !important;
     }
     
-    /* Przycisk główny (Zatwierdź/Dalej) */
+    /* Powiększenie i stylizacja tekstu "Podoba mi się!" */
+    div[data-baseweb="checkbox"] label p {
+        font-size: 18px !important;  /* Duża czcionka */
+        font-weight: 700 !important; /* Pogrubienie */
+        color: #5D9C59 !important;   /* Zielony odcień */
+    }
+    
+    /* 4. Przyciski */
     .stButton>button[kind="primary"] {
         width: 100%;
         height: 3.5em;
@@ -65,12 +74,12 @@ st.markdown("""
         font-size: 18px;
         font-weight: bold;
         box-shadow: 0 4px 10px rgba(166, 144, 101, 0.4);
+        margin-top: 20px;
     }
     .stButton>button[kind="primary"]:hover {
         background-color: #8C7853;
     }
     
-    /* Zwykłe przyciski */
     .stButton>button {
         width: 100%;
         height: 3.5em;
@@ -80,7 +89,7 @@ st.markdown("""
         color: #333;
     }
 
-    /* Link w wynikach */
+    /* 5. Link w wynikach */
     .wiki-link {
         text-decoration: none;
         color: #0068C9;
@@ -156,7 +165,6 @@ elif st.session_state.step == 2:
             st.error("Brak pliku imiona.csv!")
         else:
             filtered = df[df['Plec'] == st.session_state.selected_gender].copy()
-            # Sortowanie po popularności
             filtered = filtered.sort_values(by='Liczba', ascending=False)
             top_selection = filtered.head(limit)
             
@@ -183,19 +191,16 @@ elif st.session_state.step in [3, 4]:
     st.title(header)
     st.info(desc)
     
-    # Dane
     BATCH_SIZE = 10
     total = len(st.session_state.candidate_list)
     idx = st.session_state.current_index
     
-    # Progress
     prog = min(idx / total, 1.0) if total > 0 else 1.0
     st.progress(prog)
     st.caption(f"Wyświetlono {min(idx + BATCH_SIZE, total)} z {total}")
 
     batch = st.session_state.candidate_list[idx : idx + BATCH_SIZE]
     
-    # Logika końca listy
     if not batch:
         if st.session_state.step == 3:
             if not st.session_state.kept_names:
@@ -221,26 +226,25 @@ elif st.session_state.step in [3, 4]:
                 st.rerun()
         st.stop()
 
-    # Formularz selekcji
     with st.form(key=f"batch_{st.session_state.step}_{idx}"):
         cols = st.columns(2)
         
         for i, item in enumerate(batch):
             col = cols[i % 2]
             with col:
+                # Karta imienia (tylko imię)
                 st.markdown(f"""
                 <div class='name-card'>
                     <div class='name-text'>{item['Imie']}</div>
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # Checkbox - czysty, z opisem "Podoba mi się"
-                st.checkbox(f"💚 Podoba mi się!", key=f"chk_{item['Imie']}")
-                st.write("") # Odstęp
+                # Checkbox - tekst "Podoba mi się" jest teraz częścią widgetu
+                # CSS wyżej dba o to, by był duży i wyśrodkowany
+                st.checkbox(f"Podoba mi się!", key=f"chk_{item['Imie']}")
         
         st.write("---")
         if st.form_submit_button("Zatwierdź i pokaż kolejne ➡", type="primary"):
-            # Zbieranie wyników
             for item in batch:
                 if st.session_state.get(f"chk_{item['Imie']}", False):
                     st.session_state.kept_names.append(item)
@@ -257,7 +261,6 @@ elif st.session_state.step == 5:
     candidates = st.session_state.candidate_list
     winners = st.session_state.round_winners
     
-    # Warunki końca
     if len(candidates) == 0:
         if len(winners) + len(candidates) <= 4:
             st.session_state.candidate_list = winners
@@ -274,7 +277,6 @@ elif st.session_state.step == 5:
         st.session_state.candidate_list = []
         st.rerun()
 
-    # Walka
     f1 = candidates[0]
     f2 = candidates[1]
     
